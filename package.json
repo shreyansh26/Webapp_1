@@ -10,7 +10,9 @@
   "author": "Shreyansh Singh",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.17.0",
     "bootstrap": "^3.3.7",
+    "crypto": "0.0.3",
     "express": "^4.14.1",
     "jquery": "^3.1.1",
     "jsdom": "^9.10.0",
