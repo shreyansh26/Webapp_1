@@ -8,10 +8,15 @@ var $ = require('jquery')(window);
 var Pool = require('pg').Pool;
 var crypto = require('crypto');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 
 var app = express();
 app.use(morgan('combined'));
 app.use(bodyParser.json());
+app.use(session({
+  secret: 'someRandomSecretValue',
+  cookie: {maxAge: 1000*60*60*24*30}
+}));
 /*var jsdom = require('jsdom');
 var $ = null;
 
@@ -198,19 +203,39 @@ app.post('/login',function(req,res){    //>curl -v -X POST -H "Content-Type: app
      }
      else{
        if(result.rows.length===0){
-         res.send(403).send('username/password is invalid');
+         res.status(403).send('username/password is invalid');
        }else{
          var dbString = result.rows[0].password;
          var salt = dbString.split('$')[2];
          var hashedPassword = hash(password, salt); //Hash based on entered password and old salt
          if(hashedPassword === dbString){
+
+           //Set the session
+           req.session.auth = {userId: result.rows[0].id};
+           //set the cookie with a seesion id
+           //internally, on the server side it maps the session id to an object
+           //{auth:{userId}}
+
          res.send('credentials correct '+ username);
        }else{
-         res.send(403).send('username/password is invalid');
+         res.status(403).send('username/password is invalid');
        }
        }
      }
   });
+});
+
+app.get('/test-login', function(req,res){
+  if(req.session && req.session.auth && req.session.auth.userId){
+    res.send('You are logged in: '+req.session.auth.userId.toString())
+  }else{
+    res.send('You are not logged in');
+  }
+});
+
+app.get('/logout', function(req,res){
+  delete req.session.auth;
+  res.send('Logged out');
 });
 
 app.get('/test-db', function(req,res){
